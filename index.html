@@ -7,10 +7,10 @@
     <title>Document</title>
     <style>
         #game {
-            width: 500px;
-            height: 500px;
+            width: 1000px;
+            height: 1000px;
             border: 1px solid black;
-            background: black;
+            background-image: url(./data/Backgrounds/black.png);
             position: relative;
             overflow: hidden;
             /* 改準心 */
@@ -31,6 +31,25 @@
         .blood {
             /* 忽略點擊事件 */
             pointer-events: none;
+        }
+
+        .rockGo {
+            animation: 30s linear 1s infinite running slidein;
+        }
+
+        .rockRotate {
+            animation-name: rockRotate;
+            animation-duration: 30s;
+        }
+
+        @keyframes rockRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -91,6 +110,15 @@
                 $('#text-time').text(time)
                 //隨機1 ~ 10
                 const random = Math.ceil(Math.random() * 10)
+                const randomRocks = Math.ceil(Math.random() * 10 + 5)
+                if (randomRocks > 0 && $('.rock').length < 10) {
+                    const topRock = Math.round(Math.random() * 100) + '%'
+                    const leftRock = Math.round(Math.random() * 100) + '%'
+                    const rock = $(`<img src="./data/PNG/Meteors/meteorBrown_big1.png" class="rock rockRotate rockGo" style="top: ${topRock}; left: ${leftRock}">`)
+                    $('#game').append(rock)
+                    moveRock(rock)
+
+                }
                 //如果隨機數字大於 5 且魚的數量小於 5
                 if (random > 5 && $('.fish').length < 5) {
                     //隨機位置
@@ -171,7 +199,15 @@
             score++
             $('#text-score').text(score)
         })
-
+        function moveRock(rock) {
+            //隨機位置
+            // const topRock = Math.round(Math.random() * 100) + '%'
+            // const leftRock = Math.round(Math.random() * 100) + '%'
+            rock.animate({ topRock, leftRock }, 1000, function () {
+                topRock++
+                moveFish(rock)
+            })
+        }
         function moveFish(fish) {
             //隨機位置
             const top = Math.round(Math.random() * 100) + '%'
