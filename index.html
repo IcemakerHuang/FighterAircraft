@@ -6,17 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        #game {
-            width: 1000px;
-            height: 1000px;
-            border: 1px solid black;
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        /* 太空背景 */
+        body {
+            /* background: #333; */
             background-image: url(./data/Backgrounds/black.png);
+        }
+
+        canvas {
             position: relative;
+            display: block;
+        }
+
+        #game {
+            width: 100vw;
+            /* height: 1000px; */
+            height: 100vh;
+            border: 1px solid black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
             overflow: hidden;
             /* 改準心 */
             /* 圖為100*100，因此準心設50 50  */
             /* 使用圖片要開auto */
-            cursor: url(./cursor.png)50 50, auto;
+            cursor: url(./data_ui/PNG/crossair_white.png)50 50, auto;
         }
 
         #game>img {
@@ -28,9 +47,26 @@
             /* 不能被拖曳 */
         }
 
+        /* 選單 */
+        .menu {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            /* background: white; */
+            z-index: 999;
+            background-image: url(./data_ui/PNG/glassPanel_projection.png);
+            background-repeat: no-repeat;
+            background-size: contain;
+
+        }
+
         .blood {
             /* 忽略點擊事件 */
             pointer-events: none;
+        }
+
+        .rock {
+            position: absolute;
         }
 
         .rockGo {
@@ -51,25 +87,104 @@
                 transform: rotate(360deg);
             }
         }
+
+        p {
+            color: azure;
+        }
     </style>
 </head>
 
 <body>
-    <input type="button" value="開始" id="btn-start">
-    <br>
-    <p>分數:<span id="text-score">0</span></p>
-    <p>剩餘:<span id="text-time">0</span>秒</p>
-    <p>最高分玩家:<span id="text-hsname">-</span></p>
-    <p>最高分分數:<span id="text-hsscore">0</span></p>
-    <hr>
+
+    <div class="menu">
+        <input type="button" value="開始" id="btn-start">
+        <br>
+        <p>分數:<span id="text-score">0</span></p>
+        <p>剩餘:<span id="text-time">0</span>秒</p>
+        <p>最高分玩家:<span id="text-hsname">-</span></p>
+        <p>最高分分數:<span id="text-hsscore">0</span></p>
+    </div>
     <div id="game"></div>
+    <canvas id="canvas"></canvas>
+
     <script src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.32/sweetalert2.all.min.js'
         integrity='sha512-zB7yJLSASiSevQmWCrQaq+z/f5zRIa884hwWgmK1oI3MfolIzKcpDtyfBsrGqUi/hMCObVwr/+SZTByOqh0zkQ=='
         crossorigin='anonymous'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'
         integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=='
         crossorigin='anonymous'></script>
+
     <script>
+        window.onload = function () {
+            //canvas init
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+
+            //canvas dimensions
+            var W = window.innerWidth;
+            var H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+
+            //snowflake particles
+            var mp = 50; //max particles
+            var particles = [];
+            for (var i = 0; i < mp; i++) {
+                particles.push({
+                    x: Math.random() * W, //x-coordinate
+                    y: Math.random() * H, //y-coordinate
+                    r: Math.random() * 6 + 1, //radius
+                    d: Math.random() * mp //density
+                })
+            }
+            //Lets draw the flakes
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.beginPath();
+                for (var i = 0; i < mp; i++) {
+                    var p = particles[i];
+                    ctx.moveTo(p.x, p.y);
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+                }
+                ctx.fill();
+                update();
+            }
+            var angle = 0;
+            function update() {
+                angle += 0.01;
+                for (var i = 0; i < mp; i++) {
+                    var p = particles[i];
+                    //Updating X and Y coordinates
+                    p.y += Math.cos(angle + p.d) + 1 + p.r / 2;
+                    p.x += Math.sin(angle) * 2;
+
+                    //Sending flakes back from the top when it exits
+                    if (p.x > W + 5 || p.x < -5 || p.y > H) {
+                        if (i % 3 > 0) //66.67% of the flakes
+                        {
+                            particles[i] = { x: Math.random() * W, y: -10, r: p.r, d: p.d };
+                        }
+                        else {
+                            //If the flake is exitting from the right
+                            if (Math.sin(angle) > 0) {
+                                //Enter from the left
+                                particles[i] = { x: -5, y: Math.random() * H, r: p.r, d: p.d };
+                            }
+                            else {
+                                //Enter from the right
+                                particles[i] = { x: W + 5, y: Math.random() * H, r: p.r, d: p.d };
+                            }
+                        }
+                    }
+                }
+            }
+            //animation loop
+            setInterval(draw, 33);
+        }
+
+
         //目前分數
         let score = 0
         //剩餘秒數
@@ -89,7 +204,6 @@
             $('#text-hsname').text(hs.name)
             $('#text-hsscore').text(hs.score)
         }
-
         //點擊開始
         $('#btn-start').click(function () {
             //停用按鈕
@@ -112,12 +226,12 @@
                 const random = Math.ceil(Math.random() * 10)
                 const randomRocks = Math.ceil(Math.random() * 10 + 5)
                 if (randomRocks > 0 && $('.rock').length < 10) {
-                    const topRock = Math.round(Math.random() * 100) + '%'
+                    const topRock = Math.round(Math.random() * 100) + '%' + (2000 + 'px')
                     const leftRock = Math.round(Math.random() * 100) + '%'
                     const rock = $(`<img src="./data/PNG/Meteors/meteorBrown_big1.png" class="rock rockRotate rockGo" style="top: ${topRock}; left: ${leftRock}">`)
+                    // const rock = $(`<img src="./data/PNG/Meteors/meteorBrown_big1.png" class="rock rockRotate rockGo" style="top: 100px; left:100px">`)
                     $('#game').append(rock)
                     moveRock(rock)
-
                 }
                 //如果隨機數字大於 5 且魚的數量小於 5
                 if (random > 5 && $('.fish').length < 5) {
@@ -203,10 +317,9 @@
             //隨機位置
             // const topRock = Math.round(Math.random() * 100) + '%'
             // const leftRock = Math.round(Math.random() * 100) + '%'
-            rock.animate({ topRock, leftRock }, 1000, function () {
-                topRock++
-                moveFish(rock)
-            })
+            rock.animate({
+                top: '2000px'
+            }, 20000,)
         }
         function moveFish(fish) {
             //隨機位置
