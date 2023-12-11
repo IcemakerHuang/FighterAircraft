@@ -13,13 +13,15 @@
 
         /* 太空背景 */
         body {
+            position: relative;
             /* background: #333; */
-            background-image: url(./data/Backgrounds/black.png);
+            /* background-image: url(./data/Backgrounds/blue.png); */
         }
 
         canvas {
             position: relative;
             display: block;
+            z-index: 9;
         }
 
         #game {
@@ -65,6 +67,7 @@
             pointer-events: none;
         }
 
+        /* 飛行石塊 */
         .rock {
             position: absolute;
         }
@@ -91,6 +94,56 @@
         p {
             color: azure;
         }
+
+        /* 跑馬燈 */
+        :root {
+            --gap: 0.0001px;
+            --duration: 20s;
+            --scroll-start: 0;
+            --scroll-end: calc(-100% - var(--gap));
+        }
+
+        .marquee {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            z-index: 8;
+
+            gap: var(--gap);
+            flex-direction: column;
+        }
+
+        .marquee--group {
+            /* flex-shrink: 0; */
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            /* align-items: center; */
+            /* justify-content: space-around; */
+            gap: var(--gap);
+            animation: scroll-y var(--duration) linear infinite;
+        }
+
+        .marquee--group img {
+
+            height: 200px;
+            object-fit: contain;
+        }
+
+        @keyframes scroll-y {
+            from {
+                transform: translateY(var(--scroll-end));
+            }
+
+            to {
+                transform: translateY(var(--scroll-start));
+            }
+        }
     </style>
 </head>
 
@@ -106,6 +159,19 @@
     </div>
     <div id="game"></div>
     <canvas id="canvas"></canvas>
+    <div class="marquee">
+        <div class="marquee--group">
+            <img src="./data/Backgrounds/blue.png" />
+
+
+
+        </div>
+        <div aria-hidden="true" class="marquee--group">
+            <img src="./data/Backgrounds/blue.png" />
+
+
+        </div>
+    </div>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.32/sweetalert2.all.min.js'
         integrity='sha512-zB7yJLSASiSevQmWCrQaq+z/f5zRIa884hwWgmK1oI3MfolIzKcpDtyfBsrGqUi/hMCObVwr/+SZTByOqh0zkQ=='
@@ -115,6 +181,7 @@
         crossorigin='anonymous'></script>
 
     <script>
+        // 太空粒子背景
         window.onload = function () {
             //canvas init
             var canvas = document.getElementById("canvas");
@@ -184,7 +251,7 @@
             setInterval(draw, 33);
         }
 
-
+        // 遊戲機制
         //目前分數
         let score = 0
         //剩餘秒數
@@ -226,7 +293,7 @@
                 const random = Math.ceil(Math.random() * 10)
                 const randomRocks = Math.ceil(Math.random() * 10 + 5)
                 if (randomRocks > 0 && $('.rock').length < 10) {
-                    const topRock = Math.round(Math.random() * 100) + '%' + (2000 + 'px')
+                    const topRock = -20 + '%'
                     const leftRock = Math.round(Math.random() * 100) + '%'
                     const rock = $(`<img src="./data/PNG/Meteors/meteorBrown_big1.png" class="rock rockRotate rockGo" style="top: ${topRock}; left: ${leftRock}">`)
                     // const rock = $(`<img src="./data/PNG/Meteors/meteorBrown_big1.png" class="rock rockRotate rockGo" style="top: 100px; left:100px">`)
@@ -314,12 +381,10 @@
             $('#text-score').text(score)
         })
         function moveRock(rock) {
-            //隨機位置
+            //向下
             // const topRock = Math.round(Math.random() * 100) + '%'
             // const leftRock = Math.round(Math.random() * 100) + '%'
-            rock.animate({
-                top: '2000px'
-            }, 20000,)
+            rock.animate({ top: '2000px' }, 20000)
         }
         function moveFish(fish) {
             //隨機位置
